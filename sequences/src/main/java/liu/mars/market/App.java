@@ -19,10 +19,9 @@ public class App extends AbstractActor {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        ActorSystem seqSys = ActorSystem.create("sequences");
-        ActorSystem appSys = ActorSystem.create("app");
-        var seqRef = seqSys.actorOf(SequencesActor.props(), "sequences");
-        var mineRef = appSys.actorOf(Props.create(App.class), "ask");
+        ActorSystem system = ActorSystem.create("sequences");
+        var seqRef = system.actorOf(SequencesActor.props(), "sequences");
+        var mineRef = system.actorOf(Props.create(App.class), "ask");
         NextValue msg = new NextValue();
         msg.setName("orders");
         while (true) {

@@ -1,6 +1,6 @@
 package liu.mars.market.messages;
 
-public class CreateSequences {
+public class DropSequence {
     private String name;
 
     public String getName() {

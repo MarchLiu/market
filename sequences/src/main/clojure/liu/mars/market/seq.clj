@@ -1,5 +1,6 @@
 (ns liu.mars.market.seq
-  (:require [clojure.java.jdbc :as jdbc]))
+  (:require [clojure.java.jdbc :as jdbc])
+  (:require [jaskell.sql :refer [select from as]]))
 
 (def db-spec
   {:dbtype "postgresql"
@@ -11,7 +12,9 @@
 
 (defn list-seq
   []
-  (jdbc/query db-spec ["select sequencename, COALESCE(last_value, start_value) as last_value from pg_sequences;"]))
+  (let [sql (-> (select ["sequencename" " COALESCE(last_value, start_value)" as :last_value] from :pg_sequences)
+                (.script))]
+    (jdbc/query db-spec [sql])))
 
 (defn next-val
   [seq-name]
