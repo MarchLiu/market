@@ -1,0 +1,2 @@
+{:db-spec {:dbtype "postgresql"
+           :dbname "test"}}

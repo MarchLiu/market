@@ -20,12 +20,16 @@
                  [com.github.romix.akka/akka-kryo-serialization_2.12 "0.5.2"]]
   :aot :all
   :test-paths ["src/test/clojure" "src/test/java"]
+  :resource-paths ["resources/main"]
   :junit ["src/test/java"]
   :profiles {:server {:main liu.mars.market.App
-                      :jvm-opts ["-Dconfig.resource=junit.conf"]}
+                      :jvm-opts ["-Dconfig.resource=junit.conf"]
+                      :resource-paths ["resources/server"]}
              :client {:main liu.mars.Client
-                      :jvm-opts ["-Dconfig.resource=client.conf"]}
-             :junit {:dependencies [[junit/junit "4.12"]
+                      :jvm-opts ["-Dconfig.resource=client.conf"]
+                      :resource-paths ["resources/client"]}
+             :test {:dependencies [[junit/junit "4.12"]
                                     [com.typesafe.akka/akka-testkit_2.12 "2.5.19"]]
+                     :resource-paths ["resources/test"]
                      :java-source-paths ["src/test/java"]
                      :jvm-opts ["-Dconfig.resource=junit.conf"]}})

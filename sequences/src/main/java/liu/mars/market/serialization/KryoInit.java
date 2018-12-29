@@ -1,6 +1,5 @@
 package liu.mars.market.serialization;
 
-import clojure.lang.PersistentArrayMap;
 import com.esotericsoftware.kryo.Kryo;
 import liu.mars.market.messages.CreateSequence;
 import liu.mars.market.messages.DropSequence;
