@@ -23,7 +23,7 @@ public class ChesireSerializer extends JSerializer {
 
     @Override
     public int identifier() {
-        return 1279807;
+        return 12792807;
     }
 
     @Override

@@ -8,6 +8,8 @@ import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import liu.mars.market.messages.NextValue;
 
+import java.io.IOException;
+
 public class App extends AbstractActor {
     private LoggingAdapter log = Logging.getLogger(this.context().system(), this.getClass());
 
@@ -18,15 +20,9 @@ public class App extends AbstractActor {
         }).build();
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws IOException {
         ActorSystem system = ActorSystem.create("sequences");
         var seqRef = system.actorOf(SequencesActor.props(), "sequences");
-        var mineRef = system.actorOf(Props.create(App.class), "ask");
-        NextValue msg = new NextValue();
-        msg.setName("orders");
-        while (true) {
-            seqRef.tell(msg, mineRef);
-            Thread.sleep(500);
-        }
+        System.out.println("Ctrl+c if want to stop");
     }
 }

@@ -1,2 +1,3 @@
 {:db-spec {:dbtype "postgresql"
-           :dbname "test"}}
+           :dbname "test"}
+ :remote {:sequences "akka.tcp://sequences@192.168.50.179:25520/user/sequences"}}

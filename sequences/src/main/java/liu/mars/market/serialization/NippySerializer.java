@@ -23,7 +23,7 @@ public class NippySerializer extends JSerializer {
 
     @Override
     public int identifier() {
-        return 1279807;
+        return 12798007;
     }
 
     @Override

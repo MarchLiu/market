@@ -4,6 +4,7 @@ import akka.actor.AbstractActor;
 import akka.actor.Props;
 import akka.japi.pf.ReceiveBuilder;
 import clojure.lang.IFn;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jaskell.util.CR;
 import liu.mars.market.messages.CreateSequence;
 import liu.mars.market.messages.DropSequence;
@@ -12,6 +13,7 @@ import liu.mars.market.messages.NextValue;
 
 public class SequencesActor extends AbstractActor {
     private final static String seq_namespace = "liu.mars.market.seq";
+    private ObjectMapper mapper = new ObjectMapper();
     private static IFn creator;
     private static IFn dropper;
     private static IFn nextVal;
@@ -37,7 +39,8 @@ public class SequencesActor extends AbstractActor {
         }).match(NextValue.class, msg -> {
             sender().tell(nextVal.invoke(msg.getName()), self());
         }).match(ListSequences.class, msg -> {
-            sender().tell(listSeq.invoke(), self());
+            var result = listSeq.invoke();
+            sender().tell(result, self());
         }).build();
     }
 }
