@@ -2,8 +2,7 @@
   (:require [clojure.java.jdbc :as jdbc])
   (:require [jaskell.sql :refer [select from as]])
   (:require [liu.mars.market.config :as config])
-  (:require [cheshire.core :refer [generate-string]])
-  (:import (java.util ArrayList)))
+  (:require [cheshire.core :refer [generate-string]]))
 
 (def db-spec (delay (config/db-spec)))
 
