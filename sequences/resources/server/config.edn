@@ -1,0 +1,4 @@
+{:db-spec {:dbtype "postgresql"
+           :dbname "sequences"
+           :user "market"
+           :password "market"}}

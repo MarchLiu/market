@@ -9,7 +9,9 @@
 
 (defn create-seq
   [^String seq-name]
-  (jdbc/execute! @db-spec (str "create sequence " seq-name)))
+  (-> @db-spec
+      (jdbc/execute! (str "create sequence " seq-name))
+      first))
 
 (defn list-seq
   []
@@ -28,4 +30,6 @@
 
 (defn drop-seq
   [seq-name]
-  (jdbc/execute! @db-spec (str "drop sequence " seq-name)))
+  (-> @db-spec
+      (jdbc/execute! (str "drop sequence " seq-name))
+      first))
