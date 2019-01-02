@@ -1,22 +1,26 @@
-package liu.mars.market.serialization;
+package liu.mars.market;
 
 import clojure.lang.*;
 import com.esotericsoftware.kryo.Kryo;
 import com.fasterxml.jackson.databind.node.*;
-import liu.mars.market.messages.CreateSequence;
-import liu.mars.market.messages.DropSequence;
-import liu.mars.market.messages.ListSequences;
-import liu.mars.market.messages.NextValue;
+import liu.mars.market.messages.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class KryoInit {
     public void customize(Kryo kryo){
+        kryo.register(BigDecimal.class);
         kryo.register(CreateSequence.class);
         kryo.register(DropSequence.class);
         kryo.register(ListSequences.class);
         kryo.register(NextValue.class);
+        kryo.register(LimitAsk.class);
+        kryo.register(LimitBid.class);
+        kryo.register(MarketAsk.class);
+        kryo.register(MarketBid.class);
+        kryo.register(Cancel.class);
         kryo.register(ObjectNode.class);
         kryo.register(ArrayNode.class);
         kryo.register(LongNode.class);
