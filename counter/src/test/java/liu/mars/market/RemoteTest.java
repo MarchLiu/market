@@ -17,7 +17,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RemoteTest {
-    private static String path = "akka.tcp://counter@192.168.50.22:25530/user/order";
+    private static String path = "akka.tcp://counter@192.168.50.22:25530/user/place";
 
     private static ActorSystem system;
     private static ActorRef server;

@@ -11,7 +11,7 @@ public class App {
         CR.require(config_namespace);
         String path = (String)CR.var(config_namespace, "seq").invoke();
         ActorSystem system = ActorSystem.create("counter");
-        var seqRef = system.actorOf(OrderActor.props(path), "order");
+        var seqRef = system.actorOf(PlaceActor.props(path), "place");
         System.out.println("Ctrl+c if want to stop");
     }
 }

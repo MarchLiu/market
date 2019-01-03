@@ -3,7 +3,7 @@
             [liu.mars.market.config :as config])
   (:import (akka.actor ActorSystem)
            (akka.testkit.javadsl TestKit)
-           (liu.mars.market OrderActor)
+           (liu.mars.market PlaceActor)
            (liu.mars.market.messages LimitAsk LimitBid MarketAsk MarketBid Cancel)
            (java.util.function Supplier Function)))
 
@@ -13,7 +13,7 @@
         self (.getRef test-kit)
         await #(.awaitCond test-kit (reify Supplier (get [this] (.msgAvailable test-kit))))
         seq-url (:sequences @config/conf)
-        counter (.actorOf system (OrderActor/props seq-url))
+        counter (.actorOf system (PlaceActor/props seq-url))
         sym "btcusdt"
         limit-ask (doto (LimitAsk.)
                     (.setSymbol sym)

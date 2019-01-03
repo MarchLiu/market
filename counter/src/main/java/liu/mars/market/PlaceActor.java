@@ -12,7 +12,7 @@ import scala.concurrent.Await;
 
 import java.time.Duration;
 
-public class OrderActor extends AbstractActor {
+public class PlaceActor extends AbstractActor {
     private static final String order_namespace = "liu.mars.market.order";
     private String url;
     private IFn placeOrder;
@@ -21,10 +21,10 @@ public class OrderActor extends AbstractActor {
     }
     private ActorSelection seqSelection;
     public static Props props(String url){
-        return Props.create(OrderActor.class, ()-> new OrderActor(url));
+        return Props.create(PlaceActor.class, ()-> new PlaceActor(url));
     }
 
-    private OrderActor(String url){
+    private PlaceActor(String url){
         this.url = url;
         placeOrder = CR.var(order_namespace, "place-order").fn();
     }
