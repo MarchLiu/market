@@ -11,7 +11,6 @@
            (java.util.function Supplier Function)))
 
 (testing "tests for place and find actions by actor"
-  (j/execute! @cfg/db ["delete from order_flow"])
   (let [system (ActorSystem/create "test")
         test-kit (TestKit. system)
         await #(.awaitCond test-kit (reify Supplier (get [this] (.msgAvailable test-kit))))

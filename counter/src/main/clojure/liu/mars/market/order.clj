@@ -58,10 +58,15 @@
          :account-id (.getAccountId order)
          :symbol     (.getSymbol order)}))
 
-(def find-last-query (-> (with [:last as (select (f :min :id) :as :id from :order_flow where :id :> (p 0))]
-                               select [:order_flow.id :content :price]
-                               from :order_flow join :last on :order_flow.id := :last.id)
-                         (.cache)))
+(def find-last-query
+  (-> (with [:last as
+             (select (f :min :id) :as :id
+                     from :order_flow
+                     where :id :> (p 0))]
+            select [:order_flow.id :content :price]
+            from :order_flow
+            join :last on :order_flow.id := :last.id)
+      (.cache)))
 
 (defmulti load-order (fn [data] (get-in data [:content "category"])))
 
