@@ -4,8 +4,6 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.testkit.javadsl.TestKit;
-import clojure.lang.IFn;
-import jaskell.util.CR;
 import liu.mars.market.messages.*;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -16,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class RemoteTest {
+public class RemotePlaceTest {
     private static String path = "akka.tcp://counter@192.168.50.22:25530/user/place";
 
     private static ActorSystem system;

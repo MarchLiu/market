@@ -21,6 +21,10 @@ public class KryoInit {
         kryo.register(MarketAsk.class);
         kryo.register(MarketBid.class);
         kryo.register(Cancel.class);
+        kryo.register(NextOrder.class);
+        kryo.register(FindOrder.class);
+        kryo.register(OrderNoMore.class);
+        kryo.register(OrderNotFound.class);
         kryo.register(ObjectNode.class);
         kryo.register(ArrayNode.class);
         kryo.register(LongNode.class);

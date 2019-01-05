@@ -5,7 +5,8 @@
 
 (def default-config
   {:db-spec {:dbtype "postgresql"
-             :dbname "counter"}})
+             :dbname "counter"}
+   :sequences "akka://counter/user/sequences"})
 
 (def conf (delay
             (if-let [url (resource "config.edn")]
@@ -15,10 +16,8 @@
                   (#(merge default-config %)))
               default-config)))
 
-(defn seq
-  []
-  (-> @conf
-      :sequences))
+(def sequences
+  (:sequences @conf))
 
 (def db
   (delay

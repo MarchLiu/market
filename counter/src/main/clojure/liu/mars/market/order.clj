@@ -2,16 +2,18 @@
   (:require [clojure.java.jdbc :as j])
   (:require [clj-postgresql.core :as pg])
   (:require [liu.mars.market.config :as config])
-  (:import (liu.mars.market.messages LimitAsk LimitBid MarketAsk MarketBid Cancel)))
+  (:require [jaskell.sql :refer [select from where join with f p as on]])
+  (:import (liu.mars.market.messages LimitAsk LimitBid MarketAsk MarketBid Cancel OrderNotFound OrderNoMore)))
 
 (def db (delay @config/db))
 
 (defn save [order]
-  (j/insert! @db :order_flow {:id      (:id order)
-                              :price   (:price order)
-                              :content (if-some [_ (:price order)]
-                                         (update order :price str)
-                                         order)}))
+  (j/insert! @db :order_flow {:id         (:id order)
+                              :price      (:price order)
+                              :account_id (:account-id order)
+                              :content    (if-some [_ (:price order)]
+                                            (update order :price str)
+                                            order)}))
 
 (defmulti place-order (fn [order] (.getClass order)))
 
@@ -55,3 +57,66 @@
          :order-id   (.getOrderId order)
          :account-id (.getAccountId order)
          :symbol     (.getSymbol order)}))
+
+(def find-last-query (-> (with [:last as (select (f :min :id) :as :id from :order_flow where :id :> (p 0))]
+                               select [:order_flow.id :content :price]
+                               from :order_flow join :last on :order_flow.id := :last.id)
+                         (.cache)))
+
+(defmulti load-order (fn [data] (get-in data [:content "category"])))
+
+(defmethod load-order "limit-ask" [data]
+  (doto (LimitAsk.)
+    (.setId (:id data))
+    (.setPrice (:price data))
+    (.setSymbol (get-in data [:content "symbol"]))
+    (.setQuantity (get-in data [:content "quantity"]))
+    (.setCompleted (get-in data [:content "completed"]))
+    (.setAccountId (get-in data [:content "account-id"]))))
+
+(defmethod load-order "limit-bid" [data]
+  (doto (LimitBid.)
+    (.setId (:id data))
+    (.setPrice (:price data))
+    (.setSymbol (get-in data [:content "symbol"]))
+    (.setQuantity (get-in data [:content "quantity"]))
+    (.setCompleted (get-in data [:content "completed"]))
+    (.setAccountId (get-in data [:content "account-id"]))))
+
+(defmethod load-order "market-ask" [data]
+  (doto (MarketAsk.)
+    (.setId (:id data))
+    (.setSymbol (get-in data [:content "symbol"]))
+    (.setQuantity (get-in data [:content "quantity"]))
+    (.setCompleted (get-in data [:content "completed"]))
+    (.setAccountId (get-in data [:content "account-id"]))))
+
+(defmethod load-order "market-bid" [data]
+  (doto (MarketBid.)
+    (.setId (:id data))
+    (.setSymbol (get-in data [:content "symbol"]))
+    (.setQuantity (get-in data [:content "quantity"]))
+    (.setCompleted (get-in data [:content "completed"]))
+    (.setAccountId (get-in data [:content "account-id"]))))
+
+(defmethod load-order "cancel" [data]
+  (doto (Cancel.)
+    (.setId (:id data))
+    (.setSymbol (get-in data [:content "symbol"]))
+    (.setAccountId (get-in data [:content "account-id"]))
+    (.setOrderId (get-in data [:content "order-id"]))))
+
+(defn find-by
+  [order-id]
+  (if-some [data (j/get-by-id @db :order_flow order-id)]
+    (load-order data)
+    (doto (OrderNotFound.)
+      (.setId order-id))))
+
+(defn find-next
+  [from-id]
+  (let [data (j/query @db [(.script find-last-query) from-id])]
+    (if (not-empty data)
+      (load-order (first data))
+      (doto (OrderNoMore.)
+        (.setPositionId from-id)))))

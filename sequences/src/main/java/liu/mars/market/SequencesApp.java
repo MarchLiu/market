@@ -10,7 +10,7 @@ import liu.mars.market.messages.NextValue;
 
 import java.io.IOException;
 
-public class App extends AbstractActor {
+public class SequencesApp extends AbstractActor {
     private LoggingAdapter log = Logging.getLogger(this.context().system(), this.getClass());
 
     @Override

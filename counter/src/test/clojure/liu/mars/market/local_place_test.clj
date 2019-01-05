@@ -1,4 +1,4 @@
-(ns liu.mars.market.local-test
+(ns liu.mars.market.local-place-test
   (:require [clojure.test :refer :all]
             [liu.mars.market.config :as config])
   (:import (akka.actor ActorSystem)
