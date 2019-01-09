@@ -11,6 +11,7 @@
   (j/insert! @db :order_flow {:id         (:id order)
                               :price      (:price order)
                               :account_id (:account-id order)
+                              :symbol     (:symbol order)
                               :content    (if-some [_ (:price order)]
                                             (update order :price str)
                                             order)}))
@@ -58,11 +59,21 @@
          :account-id (.getAccountId order)
          :symbol     (.getSymbol order)}))
 
-(def find-last-query
+(def find-last-by-id
   (-> (with [:last as
              (select (f :min :id) :as :id
                      from :order_flow
                      where :id :> (p 0))]
+            select [:order_flow.id :content :price]
+            from :order_flow
+            join :last on :order_flow.id := :last.id)
+      (.cache)))
+
+(def find-last-query
+  (-> (with [:last as
+             (select (f :min :id) :as :id
+                     from :order_flow
+                     where :id :> (p 0) :and :content :->> "'symbol'" := (p 1))]
             select [:order_flow.id :content :price]
             from :order_flow
             join :last on :order_flow.id := :last.id)
@@ -112,16 +123,30 @@
     (.setOrderId (get-in data [:content "order-id"]))))
 
 (defn find-by
-  [order-id]
-  (if-some [data (j/get-by-id @db :order_flow order-id)]
-    (load-order data)
-    (doto (OrderNotFound.)
-      (.setId order-id))))
+  ([order-id]
+   (if-some [data (j/get-by-id @db :order_flow order-id)]
+     (load-order data)
+     (doto (OrderNotFound.)
+       (.setId order-id))))
+  ([order-id sym]
+    (let [data (j/find-by-keys @db :order_flow {:id order-id :symbol sym})]
+      (if (not-empty data)
+        (load-order (first data))
+        (doto (OrderNotFound.)
+          (.setPositionId order-id)
+          (.setSymbol sym))))))
 
 (defn find-next
-  [from-id]
-  (let [data (j/query @db [(.script find-last-query) from-id])]
-    (if (not-empty data)
-      (load-order (first data))
-      (doto (OrderNoMore.)
-        (.setPositionId from-id)))))
+  ([from-id]
+   (let [data (j/query @db [(.script find-last-by-id) from-id])]
+     (if (not-empty data)
+       (load-order (first data))
+       (doto (OrderNoMore.)
+         (.setPositionId from-id)))))
+  ([from-id sym]
+    (let [data (j/query @db [(.script find-last-query) from-id sym])]
+      (if (not-empty data)
+        (load-order (first data))
+        (doto (OrderNoMore.)
+          (.setPositionId from-id)
+          (.setSymbol sym))))))

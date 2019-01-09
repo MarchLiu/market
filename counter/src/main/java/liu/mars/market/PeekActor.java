@@ -27,9 +27,15 @@ public class PeekActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder().match(NextOrder.class, msg -> {
-            sender().tell(next.invoke(msg.getPositionId()), self());
+            var result = msg.getSymbol() == null?
+                    next.invoke(msg.getPositionId()) :
+                    next.invoke(msg.getPositionId(), msg.getSymbol());
+            sender().tell(next.invoke(result), self());
         }).match(FindOrder.class, msg -> {
-            sender().tell(find.invoke(msg.getId()), self());
+            var result = msg.getSymbol() == null?
+                    find.invoke(msg.getId()) :
+                    find.invoke(msg.getId(), msg.getSymbol());
+            sender().tell(result, self());
         }).build();
     }
 }

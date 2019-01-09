@@ -36,4 +36,5 @@
              :dev     {:resource-paths ["resources/dev"]
                        :source-paths   ["src/notebook"]
                        :jvm-opts       ["-Dconfig.resource=dev.conf"]}
-             :gorilla {:plugins [[org.clojars.benfb/lein-gorilla "0.5.3"]]}})
+             :gorilla {:source-paths ["src/notebook"]
+                       :plugins [[org.clojars.benfb/lein-gorilla "0.5.3"]]}})
