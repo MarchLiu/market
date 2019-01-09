@@ -11,7 +11,6 @@
   (j/insert! @db :order_flow {:id         (:id order)
                               :price      (:price order)
                               :account_id (:account-id order)
-                              :symbol     (:symbol order)
                               :content    (if-some [_ (:price order)]
                                             (update order :price str)
                                             order)}))
