@@ -10,6 +10,7 @@
                  [com.typesafe.akka/akka-actor_2.12 "2.5.19"]
                  [com.typesafe.akka/akka-remote_2.12 "2.5.19"]
                  [liu.mars/jaskell "0.1.2"]
+                 [liu.mars/akka-clojure "0.1.0"]
                  [liu.mars/market-messages "0.2"]
                  [org.postgresql/postgresql "42.2.5"]
                  [clj-postgresql "0.7.0"]

@@ -17,6 +17,6 @@ public class CounterApp {
             system.stop(placeRef);
             system.stop(peekRef);
         });
-        System.out.println("Ctrl+c if want to stop");
+        System.out.println("Ctrl+c to exit.");
     }
 }
