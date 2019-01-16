@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class QuotationsBus extends ManagedActorEventBus<MarketEvent> {
+public class QuotationsBus extends ManagedActorEventBus<QuotationsEvent> {
     static private QuotationsBus instance;
 
     static void init(ActorSystem system) {
@@ -43,7 +43,7 @@ public class QuotationsBus extends ManagedActorEventBus<MarketEvent> {
     }
 
     @Override
-    public ActorRef classify(MarketEvent event) {
+    public ActorRef classify(QuotationsEvent event) {
         return event.topicActor;
     }
 

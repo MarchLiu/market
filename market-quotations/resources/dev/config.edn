@@ -1,0 +1,4 @@
+{:db-spec   {:dbtype "postgresql"
+             :dbname "match"}
+ :sequences "akka.tcp://sequences@127.0.0.1:2552/user/sequences"
+ :peek      "akka.tcp//counter@127.0.0.1:2553/user/peek"}

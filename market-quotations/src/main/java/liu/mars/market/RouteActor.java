@@ -10,7 +10,6 @@ import jaskell.util.CR;
 import liu.mars.market.dash.Depth;
 import liu.mars.market.dash.Level;
 import liu.mars.market.dash.Make;
-import liu.mars.market.messages.QueryDepth;
 import liu.mars.market.status.DashStatus;
 
 import java.time.LocalDateTime;
@@ -19,7 +18,7 @@ import java.util.stream.IntStream;
 
 public class RouteActor extends AbstractActor {
     LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private static final String depth_namespace = "liu.mars.depth";
+    private static final String depth_namespace = "liu.mars.market.depth";
     static {
         CR.require(depth_namespace);
     }
@@ -31,8 +30,8 @@ public class RouteActor extends AbstractActor {
         this.symbol = symbol;
     }
 
-    static Props props(String topic) {
-        return Props.create(RouteActor.class, () -> new RouteActor(topic));
+    static Props props(String symbol) {
+        return Props.create(RouteActor.class, () -> new RouteActor(symbol));
     }
 
     @Override
@@ -55,7 +54,7 @@ public class RouteActor extends AbstractActor {
             result.setBid(mergeLevel(step, status.getBidList()));
             result.setVersion(status.getLatestOrderId());
             QuotationsBus.getInstance()
-                    .publish(new MarketEvent(QuotationsBus.getTopic(channel), result));
+                    .publish(new QuotationsEvent(QuotationsBus.getTopic(channel), result));
         });
     }
 }
