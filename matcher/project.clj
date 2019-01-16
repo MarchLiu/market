@@ -2,7 +2,7 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+            :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :plugins [[lein-junit "1.1.8"]]
   :source-paths ["src/main/clojure"]
   :java-source-paths ["src/main/java"]
@@ -21,12 +21,11 @@
   :resource-paths ["resources/main"]
   :junit ["src/test/java"]
   :aot :all
+  :main liu.mars.market.MatcherApp
   :uberjar-merge-with {#"\.properties$" [slurp str spit] "reference.conf" [slurp str spit]}
-  :profiles {:server  {:main           liu.mars.market.CounterApp
-                       :jvm-opts       ["-Dconfig.resource=server.conf"]
+  :profiles {:server  {:jvm-opts       ["-Dconfig.resource=server.conf"]
                        :resource-paths ["resources/server"]}
-             :local   {:main           liu.mars.market.CounterApp
-                       :jvm-opts       ["-Dconfig.resource=server.conf"]
+             :local   {:jvm-opts       ["-Dconfig.resource=server.conf"]
                        :resource-paths ["resources/local"]}
              :test    {:dependencies      [[junit/junit "4.12"]
                                            [com.typesafe.akka/akka-testkit_2.12 "2.5.19"]]
@@ -37,4 +36,4 @@
                        :source-paths   ["src/notebook"]
                        :jvm-opts       ["-Dconfig.resource=dev.conf"]}
              :gorilla {:source-paths ["src/notebook"]
-                       :plugins [[org.clojars.benfb/lein-gorilla "0.5.3"]]}})
+                       :plugins      [[org.clojars.benfb/lein-gorilla "0.5.3"]]}})

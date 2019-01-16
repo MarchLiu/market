@@ -7,8 +7,9 @@
   {:db-spec {:dbtype "postgresql"
              :dbname "match"}
    :sequences "akka://sequences/user/sequences"
-   :depth "akka://quotations/user/depth"
-   :peek "akka://counter/user/peek"})
+   :quotations "akka://market/user/quotations"
+   :peek "akka://counter/user/peek"
+   :status "akka://status/user/status"})
 
 (def conf (delay
             (if-let [url (resource "config.edn")]
@@ -18,8 +19,19 @@
                   (#(merge default-config %)))
               default-config)))
 
-(def sequences
+(defn sequences []
   (:sequences @conf))
+
+(defn status []
+  (:status @conf))
+
+(defn quotations
+  []
+  (:quotations @conf))
+
+(defn peek-selection
+  []
+  (:peek @conf))
 
 (def db
   (delay

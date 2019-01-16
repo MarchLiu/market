@@ -23,15 +23,10 @@ public class RouteActor extends AbstractActor {
         CR.require(depth_namespace);
     }
 
-    private String symbol;
     private IFn merge_depth = CR.var(depth_namespace, "merge-depth").fn();
 
-    public RouteActor(String symbol){
-        this.symbol = symbol;
-    }
-
     static Props props(String symbol) {
-        return Props.create(RouteActor.class, () -> new RouteActor(symbol));
+        return Props.create(RouteActor.class, RouteActor::new);
     }
 
     @Override
@@ -46,7 +41,7 @@ public class RouteActor extends AbstractActor {
 
     private void genDepth(DashStatus status){
         IntStream.of(0, 1, 2, 3, 4, 5).forEach( step -> {
-            String channel = String.format("%s.depth.step%d", symbol, step);
+            String channel = String.format("%s.depth.step%d", status.getSymbol(), step);
             Depth result = new Depth();
             result.setChannel(channel);
             result.setTs(LocalDateTime.now());

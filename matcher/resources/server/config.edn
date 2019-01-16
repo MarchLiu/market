@@ -3,4 +3,6 @@
              :user "market"
              :password "market"}
  :peek      "akka.tcp://counter@192.168.50.22:25530/user/peek"
- :sequences "akka.tcp://sequences@192.168.50.22:25520/user/sequences"}
+ :sequences "akka.tcp://sequences@192.168.50.22:25520/user/sequences"
+ :status "akka.tcp://status@192.168.50.22:25540/user/status"
+ :quotations    "akka.tcp//market@192.168.50.22:25560/user/quotations"}

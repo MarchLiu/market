@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.*;
 import liu.mars.market.dash.*;
 import liu.mars.market.directive.LoadOrders;
 import liu.mars.market.directive.LoadStatus;
+import liu.mars.market.directive.StatusDump;
 import liu.mars.market.directive.StatusQuery;
 import liu.mars.market.error.InLoading;
 import liu.mars.market.error.LoadFailed;
@@ -36,6 +37,7 @@ public class KryoInit {
         kryo.register(OrderNotFound.class);
         kryo.register(LoadOrders.class);
         kryo.register(LoadStatus.class);
+        kryo.register(StatusDump.class);
         kryo.register(StatusQuery.class);
         kryo.register(Ask.class);
         kryo.register(Bid.class);

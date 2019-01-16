@@ -14,6 +14,7 @@ import liu.mars.market.dash.Ask;
 import liu.mars.market.dash.Bid;
 import liu.mars.market.dash.Make;
 import liu.mars.market.directive.LoadStatus;
+import liu.mars.market.directive.StatusDump;
 import liu.mars.market.directive.StatusQuery;
 import liu.mars.market.error.InLoading;
 import liu.mars.market.error.LoadFailed;
@@ -37,11 +38,18 @@ public class DashActor extends AbstractActor {
     LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
     private static final String config_namepace = "liu.mars.market.config";
     private static final String matcher_namepace = "liu.mars.market.matcher";
+
     static {
         CR.require(config_namepace);
         CR.require(matcher_namepace);
     }
+
+    private String quotation_path;
     private ObjectMapper mapper;
+
+    private DashActor() {
+        quotation_path = CR.invoke(config_namepace, "quotations").toString();
+    }
 
     private AbstractActor.Receive trading = ReceiveBuilder.create()
             .match(StatusQuery.class, msg -> {
@@ -49,33 +57,38 @@ public class DashActor extends AbstractActor {
             })
             .match(LimitAsk.class, order -> {
                 Trade t = trade(order);
-                CR.invoke(matcher_namepace, "save",
-                        mapper.valueToTree(t).toString());
-                sender().tell(t, self());
+                postTrade(t);
             })
             .match(LimitBid.class, order -> {
                 Trade t = trade(order);
-                CR.invoke(matcher_namepace, "save",
-                        mapper.valueToTree(t).toString());
-                sender().tell(t, self());
+                postTrade(t);
             })
             .match(MarketAsk.class, order -> {
                 Trade t = trade(order);
-                CR.invoke(matcher_namepace, "save",
-                        mapper.valueToTree(t).toString());
-                sender().tell(t, self());
+                postTrade(t);
             })
             .match(MarketBid.class, order -> {
                 Trade t = trade(order);
-                CR.invoke(matcher_namepace, "save",
-                        mapper.valueToTree(t).toString());
-                sender().tell(t, self());
+                postTrade(t);
             })
             .match(Cancel.class, order -> {
                 Trade t = trade(order);
-                CR.invoke(matcher_namepace, "save",
-                        mapper.valueToTree(t).toString());
-                sender().tell(t, self());
+                postTrade(t);
+            })
+            .match(OrderNoMore.class, msg -> {
+                log.info("not more new order. Request next after {} ms", 100);
+                context().system().scheduler().scheduleOnce(Duration.ofMillis(100), () -> {
+                    this.peekActor.tell(nextMessage(), self());
+                }, context().dispatcher());
+            })
+            .match(StatusDump.class, msg -> {
+                var result = new DashStatus();
+                result.setLatestOrderId(this.latestId);
+                result.setSymbol(this.symbol);
+                result.getAskList().addAll(this.askList);
+                result.getBidList().addAll(this.bidList);
+                result.setStatus("trading");
+                sender().tell(result, self());
             }).build();
     private AbstractActor.Receive loading = ReceiveBuilder.create()
             .match(StatusQuery.class, msg -> {
@@ -89,6 +102,13 @@ public class DashActor extends AbstractActor {
                 switch (status.getStatus()) {
                     case "trading":
                         this.getContext().become(this.trading);
+                        var message = new NextOrder();
+                        message.setSymbol(this.symbol);
+                        message.setPositionId(this.latestId);
+                        log.info("load finished and into trading, begin match after 3 seconds");
+                        context().system().scheduler().scheduleOnce(Duration.ofSeconds(3), () -> {
+                                    this.peekActor.tell(message, self());
+                                }, context().dispatcher());
                         break;
                     default:
                         throw new LoadFailed(this.symbol, String.format("invalid status %s", status.getStatus()));
@@ -98,20 +118,24 @@ public class DashActor extends AbstractActor {
                 sender().tell(new InLoading(this.symbol), self());
             }).build();
 
-    private String statusActorUrl;
+    private ActorSelection sequencesActor;
+    private ActorSelection statusActor;
+    private ActorSelection peekActor;
     private LinkedList<Ask> askList = new LinkedList<>();
     private LinkedList<Bid> bidList = new LinkedList<>();
     private String symbol;
     private long latestId;
 
-    private DashActor(String symbol, String statusActor) {
+    private DashActor(String symbol) {
         this.symbol = symbol;
-        this.statusActorUrl = statusActor;
+        this.sequencesActor = getContext().actorSelection(CR.var(config_namepace, "sequences").invoke().toString());
+        this.statusActor = getContext().actorSelection(CR.invoke(config_namepace, "status").toString());
+        this.peekActor = getContext().actorSelection(CR.var(config_namepace, "peek-selection").invoke().toString());
         this.mapper = new ObjectMapper();
     }
 
-    public static Props props(String symbol, String statusActor) {
-        return Props.create(DashActor.class, () -> new DashActor(symbol, statusActor));
+    public static Props props(String symbol) {
+        return Props.create(DashActor.class, () -> new DashActor(symbol));
     }
 
     public String getSymbol() {
@@ -130,6 +154,13 @@ public class DashActor extends AbstractActor {
         return askList;
     }
 
+    private void postTrade(Trade trade) {
+        CR.invoke(matcher_namepace, "save",
+                mapper.valueToTree(trade).toString());
+        sender().tell(trade, self());
+        this.peekActor.tell(nextMessage(), self());
+    }
+
     private Trade createTrade(Order order) throws Exception {
         Trade re = new Trade();
         re.setId(getNextId());
@@ -142,10 +173,10 @@ public class DashActor extends AbstractActor {
         latestId = order.getId();
         Trade re = createTrade(order);
         re.setTakerCategory("market-ask");
-        while (order.getSurplus()>0){
+        while (order.getSurplus() > 0) {
             Bid bid = bidList.getLast();
             bid.trade(order).ifPresent(re::add);
-            if(bid.getSurplus()==0){
+            if (bid.getSurplus() == 0) {
                 bidList.removeLast();
             }
         }
@@ -159,7 +190,7 @@ public class DashActor extends AbstractActor {
         while (order.getSurplus() > 0) {
             Ask ask = askList.getLast();
             ask.trade(order).ifPresent(re::add);
-            if(ask.getSurplus()==0){
+            if (ask.getSurplus() == 0) {
                 askList.removeLast();
             }
         }
@@ -172,19 +203,19 @@ public class DashActor extends AbstractActor {
         Trade re = createTrade(order);
         re.setTakerCategory("limit-ask");
 
-        while (order.getSurplus()>0 && !bidList.isEmpty()){
+        while (order.getSurplus() > 0 && !bidList.isEmpty()) {
             Bid bid = bidList.getLast();
-            if (bid.getPrice().compareTo(order.getPrice()) < 0){
+            if (bid.getPrice().compareTo(order.getPrice()) < 0) {
                 break;
             }
 
             bid.trade(order).ifPresent(re::add);
-            if(bid.getSurplus()==0){
+            if (bid.getSurplus() == 0) {
                 bidList.removeLast();
             }
         }
 
-        if(order.getSurplus() > 0){
+        if (order.getSurplus() > 0) {
             askList.addLast(Ask.from(order));
         }
 
@@ -196,18 +227,18 @@ public class DashActor extends AbstractActor {
         Trade re = createTrade(order);
         re.setTakerCategory("limit-bid");
 
-        while (order.getSurplus()>0 && !askList.isEmpty()){
+        while (order.getSurplus() > 0 && !askList.isEmpty()) {
             Ask ask = askList.getLast();
-            if (ask.getPrice().compareTo(order.getPrice()) > 0){
+            if (ask.getPrice().compareTo(order.getPrice()) > 0) {
                 break;
             }
 
             ask.trade(order).ifPresent(re::add);
-            if(ask.getSurplus()==0){
+            if (ask.getSurplus() == 0) {
                 askList.removeLast();
             }
         }
-        if(order.getSurplus() > 0){
+        if (order.getSurplus() > 0) {
             bidList.addLast(Bid.from(order));
         }
 
@@ -219,12 +250,12 @@ public class DashActor extends AbstractActor {
         Trade re = createTrade(order);
         re.setTakerCategory("cancel");
         Predicate<Make> checker = make -> {
-            if(make.getOrderId() == order.getOrderId()) {
+            if (make.getOrderId() == order.getOrderId()) {
                 TradeItem item = new TradeItem();
                 item.setPrice(make.getPrice());
                 item.setMakerId(make.getOrderId());
                 return true;
-            }else {
+            } else {
                 return false;
             }
         };
@@ -236,8 +267,8 @@ public class DashActor extends AbstractActor {
     private void place(LimitAsk order) {
         latestId = order.getId();
         int idx = 0;
-        while (idx<this.askList.size()){
-            if(this.askList.get(idx).getPrice().compareTo(order.getPrice())<0){
+        while (idx < this.askList.size()) {
+            if (this.askList.get(idx).getPrice().compareTo(order.getPrice()) < 0) {
                 break;
             }
         }
@@ -248,8 +279,8 @@ public class DashActor extends AbstractActor {
     private void place(LimitBid order) {
         latestId = order.getId();
         int idx = 0;
-        while (idx<this.askList.size()){
-            if(this.bidList.get(idx).getPrice().compareTo(order.getPrice())>0){
+        while (idx < this.askList.size()) {
+            if (this.bidList.get(idx).getPrice().compareTo(order.getPrice()) > 0) {
                 break;
             }
         }
@@ -258,16 +289,20 @@ public class DashActor extends AbstractActor {
     }
 
     private long getNextId() throws Exception {
-        ActorSelection seq = getContext().actorSelection(CR.var(config_namepace, "sequences").invoke().toString());
-
-        Future future = ask(seq, "trade", 1000);
+        Future future = ask(sequencesActor, "trade_id", 1000);
         Timeout timeout = Timeout.create(Duration.ofSeconds(1));
-        return  (Long) Await.result(future, timeout.duration());
+        return (Long) Await.result(future, timeout.duration());
     }
 
-    @Override
+    private NextOrder nextMessage() {
+        var result = new NextOrder();
+        result.setSymbol(this.symbol);
+        result.setPositionId(this.latestId);
+        return result;
+    }
+
     public Receive createReceive() {
-        getContext().actorSelection(statusActorUrl).tell(new LoadStatus(), self());
+        statusActor.tell(new LoadStatus(), self());
         return loading;
     }
 
@@ -275,6 +310,5 @@ public class DashActor extends AbstractActor {
     public void preStart() throws Exception {
         super.preStart();
     }
-
 
 }

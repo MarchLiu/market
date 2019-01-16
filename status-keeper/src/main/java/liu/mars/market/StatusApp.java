@@ -8,6 +8,7 @@ import clojure.lang.IFn;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaskell.util.CR;
 import liu.mars.market.directive.LoadStatus;
+import liu.mars.market.directive.StatusDump;
 import liu.mars.market.directive.StatusQuery;
 import liu.mars.market.status.DashStatus;
 
@@ -71,7 +72,7 @@ public class StatusApp extends AbstractActorWithTimers {
                 Duration.ofSeconds(60), () -> {
             String matcher_path = CR.invoke(config_namespace, "matcher").toString();
             ActorSelection matcher = system.actorSelection(matcher_path);
-            StatusQuery query = new StatusQuery();
+            StatusDump query = new StatusDump();
             query.setSymbol("btcusdt");
             matcher.tell(query, statusActor);
             log.info("status query to {}", matcher_path);

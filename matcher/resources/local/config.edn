@@ -1,4 +1,10 @@
 {:db-spec   {:dbtype "postgresql"
              :dbname "match"}
- :sequences "akka.tcp://sequences@127.0.0.1:2552/user/sequences"
- :peek      "akka.tcp//counter@127.0.0.1:2553/user/peek"}
+ ;:sequences "akka.tcp://sequences@127.0.0.1:2552/user/sequences"
+ ;:peek      "akka.tcp//counter@127.0.0.1:2553/user/peek"
+ ;:quotations    "akka.tcp//market@127.0.0.1:2556/user/quotations"
+
+ :sequences "akka.tcp://sequences@192.168.50.22:25520/user/sequences"
+ :peek      "akka.tcp//counter@192.168.50.22:25530/user/peek"
+ :status "akka.tcp://status@192.168.50.22:25540/user/status"
+ :quotations    "akka.tcp//market@192.168.50.22:25560/user/quotations"}
