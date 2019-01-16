@@ -1,5 +1,7 @@
 package liu.mars.market.trade;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +9,7 @@ public class Trade {
     private long id;
     private long takerId;
     private String symbol;
-    private String takeDirection;
+    private String takerCategory;
     private List<TradeItem> tradeItems = new ArrayList<>();
 
     public long getId() {
@@ -26,6 +28,7 @@ public class Trade {
         this.symbol = symbol;
     }
 
+    @JsonProperty("taker-id")
     public long getTakerId() {
         return takerId;
     }
@@ -34,14 +37,16 @@ public class Trade {
         this.takerId = takerId;
     }
 
-    public String getTakeDirection() {
-        return takeDirection;
+    @JsonProperty("taker-category")
+    public String getTakerCategory() {
+        return takerCategory;
     }
 
-    public void setTakeDirection(String takeDirection) {
-        this.takeDirection = takeDirection;
+    public void setTakerCategory(String takerCategory) {
+        this.takerCategory = takerCategory;
     }
 
+    @JsonProperty("trade-items")
     public List<TradeItem> getTradeItems() {
         return tradeItems;
     }

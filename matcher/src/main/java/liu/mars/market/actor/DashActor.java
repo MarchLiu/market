@@ -1,16 +1,20 @@
 package liu.mars.market.actor;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import akka.util.Timeout;
-import clojure.lang.IFn;
+import com.esotericsoftware.kryo.util.ObjectMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jaskell.util.CR;
-import liu.mars.market.dash.*;
+import liu.mars.market.dash.Ask;
+import liu.mars.market.dash.Bid;
+import liu.mars.market.dash.Make;
 import liu.mars.market.directive.LoadStatus;
+import liu.mars.market.directive.StatusQuery;
 import liu.mars.market.error.InLoading;
 import liu.mars.market.error.LoadFailed;
 import liu.mars.market.messages.*;
@@ -23,7 +27,6 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -32,32 +35,47 @@ import static akka.pattern.Patterns.ask;
 
 public class DashActor extends AbstractActor {
     LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-    private static final String depth_namespace = "liu.mars.depth";
+    private static final String config_namepace = "liu.mars.market.config";
+    private static final String matcher_namepace = "liu.mars.market.matcher";
     static {
-        CR.require(depth_namespace);
+        CR.require(config_namepace);
+        CR.require(matcher_namepace);
     }
+    private ObjectMapper mapper;
 
     private AbstractActor.Receive trading = ReceiveBuilder.create()
             .match(StatusQuery.class, msg -> {
                 sender().tell(new Trading(), self());
             })
             .match(LimitAsk.class, order -> {
-                sender().tell(trade(order), self());
+                Trade t = trade(order);
+                CR.invoke(matcher_namepace, "save",
+                        mapper.valueToTree(t).toString());
+                sender().tell(t, self());
             })
-            .match(LimitBid.class, msg -> {
-                sender().tell(trade(msg), self());
+            .match(LimitBid.class, order -> {
+                Trade t = trade(order);
+                CR.invoke(matcher_namepace, "save",
+                        mapper.valueToTree(t).toString());
+                sender().tell(t, self());
             })
-            .match(MarketAsk.class, msg -> {
-                sender().tell(trade(msg), self());
+            .match(MarketAsk.class, order -> {
+                Trade t = trade(order);
+                CR.invoke(matcher_namepace, "save",
+                        mapper.valueToTree(t).toString());
+                sender().tell(t, self());
             })
-            .match(MarketBid.class, msg -> {
-                sender().tell(trade(msg), self());
+            .match(MarketBid.class, order -> {
+                Trade t = trade(order);
+                CR.invoke(matcher_namepace, "save",
+                        mapper.valueToTree(t).toString());
+                sender().tell(t, self());
             })
-            .match(Cancel.class, msg -> {
-                sender().tell(trade(msg), self());
-            })
-            .match(QueryDepth.class, msg -> {
-                sender().tell(queryDepth(msg), self());
+            .match(Cancel.class, order -> {
+                Trade t = trade(order);
+                CR.invoke(matcher_namepace, "save",
+                        mapper.valueToTree(t).toString());
+                sender().tell(t, self());
             }).build();
     private AbstractActor.Receive loading = ReceiveBuilder.create()
             .match(StatusQuery.class, msg -> {
@@ -81,7 +99,6 @@ public class DashActor extends AbstractActor {
             }).build();
 
     private String statusActorUrl;
-    private IFn merge_depth = CR.var(depth_namespace, "merge-depth").fn();
     private LinkedList<Ask> askList = new LinkedList<>();
     private LinkedList<Bid> bidList = new LinkedList<>();
     private String symbol;
@@ -90,6 +107,7 @@ public class DashActor extends AbstractActor {
     private DashActor(String symbol, String statusActor) {
         this.symbol = symbol;
         this.statusActorUrl = statusActor;
+        this.mapper = new ObjectMapper();
     }
 
     public static Props props(String symbol, String statusActor) {
@@ -123,7 +141,7 @@ public class DashActor extends AbstractActor {
     private Trade trade(MarketAsk order) throws Exception {
         latestId = order.getId();
         Trade re = createTrade(order);
-        re.setTakeDirection("ask");
+        re.setTakerCategory("market-ask");
         while (order.getSurplus()>0){
             Bid bid = bidList.getLast();
             bid.trade(order).ifPresent(re::add);
@@ -137,7 +155,7 @@ public class DashActor extends AbstractActor {
     private Trade trade(MarketBid order) throws Exception {
         latestId = order.getId();
         Trade re = createTrade(order);
-        re.setTakeDirection("bid");
+        re.setTakerCategory("market-bid");
         while (order.getSurplus() > 0) {
             Ask ask = askList.getLast();
             ask.trade(order).ifPresent(re::add);
@@ -152,7 +170,7 @@ public class DashActor extends AbstractActor {
     private Trade trade(LimitAsk order) throws Exception {
         latestId = order.getId();
         Trade re = createTrade(order);
-        re.setTakeDirection("ask");
+        re.setTakerCategory("limit-ask");
 
         while (order.getSurplus()>0 && !bidList.isEmpty()){
             Bid bid = bidList.getLast();
@@ -176,7 +194,7 @@ public class DashActor extends AbstractActor {
     private Trade trade(LimitBid order) throws Exception {
         latestId = order.getId();
         Trade re = createTrade(order);
-        re.setTakeDirection("bid");
+        re.setTakerCategory("limit-bid");
 
         while (order.getSurplus()>0 && !askList.isEmpty()){
             Ask ask = askList.getLast();
@@ -199,7 +217,7 @@ public class DashActor extends AbstractActor {
     private Trade trade(Cancel order) throws Exception {
         latestId = order.getId();
         Trade re = createTrade(order);
-        re.setTakeDirection("cancel");
+        re.setTakerCategory("cancel");
         Predicate<Make> checker = make -> {
             if(make.getOrderId() == order.getOrderId()) {
                 TradeItem item = new TradeItem();
@@ -240,26 +258,11 @@ public class DashActor extends AbstractActor {
     }
 
     private long getNextId() throws Exception {
-        ActorRef seq = getContext().actorOf(Props.create(SequenceActor.class));
+        ActorSelection seq = getContext().actorSelection(CR.var(config_namepace, "sequences").invoke().toString());
 
         Future future = ask(seq, "trade", 1000);
         Timeout timeout = Timeout.create(Duration.ofSeconds(1));
         return  (Long) Await.result(future, timeout.duration());
-    }
-
-    private List<Level> mergeLevel(int step, List<? extends Make> orders){
-        return (List<Level>) merge_depth.invoke(step, orders);
-    }
-
-    private Depth queryDepth(QueryDepth query){
-        String channel = String.format("%s.depth.step%d", symbol, query.getStep());
-        Depth result = new Depth();
-        result.setChannel(channel);
-        result.setTs(LocalDateTime.now());
-        result.setAsk(mergeLevel(query.getStep(), askList));
-        result.setBid(mergeLevel(query.getStep(), bidList));
-        result.setVersion(latestId);
-        return result;
     }
 
     @Override

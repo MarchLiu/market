@@ -1,0 +1,4 @@
+{:db-spec    {:dbtype "postgresql"
+              :dbname "status"}
+ :matcher    {:btcusdt "akka.tcp://matcher@192.168.50.22:25540/user/btcusdt"}
+ :query-rate 60}

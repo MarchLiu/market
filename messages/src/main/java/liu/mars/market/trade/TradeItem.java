@@ -1,5 +1,7 @@
 package liu.mars.market.trade;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 
 public class TradeItem {
@@ -7,6 +9,7 @@ public class TradeItem {
     private BigDecimal price;
     private Long turnover;
 
+    @JsonProperty("maker-id")
     public long getMakerId() {
         return makerId;
     }

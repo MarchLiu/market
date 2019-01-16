@@ -5,4 +5,4 @@ create table status
   content jsonb not null,
   save_at timestamp default now()
 );
-insert into status(content) values('{"latest-id":0, "bids":[], "asks":[]}');
+insert into status(content) values('{"latest-order-id":0, "bids":[], "asks":[], "status":"trading"}');

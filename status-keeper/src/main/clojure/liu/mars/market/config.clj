@@ -4,11 +4,10 @@
             [clj-postgresql.core :as pg]))
 
 (def default-config
-  {:db-spec {:dbtype "postgresql"
-             :dbname "match"}
-   :sequences "akka://sequences/user/sequences"
-   :depth "akka://quotations/user/depth"
-   :peek "akka://counter/user/peek"})
+  {:db-spec    {:dbtype "postgresql"
+                :dbname "status"}
+   :matcher    "akka://matcher/user/matcher"
+   :query-rate 60})
 
 (def conf (delay
             (if-let [url (resource "config.edn")]
@@ -18,8 +17,15 @@
                   (#(merge default-config %)))
               default-config)))
 
-(def sequences
-  (:sequences @conf))
+(defn query-rate
+  []
+  (:query-rate @conf))
+
+(defn matcher
+  [sym]
+  (-> @conf
+      :matcher
+      sym))
 
 (def db
   (delay

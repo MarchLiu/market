@@ -1,5 +1,5 @@
 {:db-spec   {:dbtype "postgresql"
-             :dbname "counter"
+             :dbname "match"
              :user "market"
              :password "market"}
  :peek      "akka.tcp://counter@192.168.50.22:25530/user/peek"
