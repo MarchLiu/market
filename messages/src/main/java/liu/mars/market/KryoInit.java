@@ -1,6 +1,5 @@
 package liu.mars.market;
 
-import clojure.lang.*;
 import com.esotericsoftware.kryo.Kryo;
 import com.fasterxml.jackson.databind.node.*;
 import liu.mars.market.dash.*;
@@ -56,12 +55,5 @@ public class KryoInit {
         kryo.register(TextNode.class);
         kryo.register(ArrayList.class);
         kryo.register(LinkedHashMap.class);
-        kryo.register(JsonNodeFactory.class);
-        kryo.register(PersistentArrayMap.class);
-        kryo.register(PersistentVector.class);
-        kryo.register(PersistentList.class);
-        kryo.register(Keyword.class);
-        kryo.register(Symbol.class);
-        kryo.register(LazySeq.class);
     }
 }

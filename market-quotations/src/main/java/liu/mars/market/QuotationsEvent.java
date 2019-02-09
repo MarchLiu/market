@@ -1,8 +1,6 @@
 package liu.mars.market;
 
 import akka.actor.ActorRef;
-import com.fasterxml.jackson.databind.JsonNode;
-import liu.mars.market.status.DashStatus;
 
 public class QuotationsEvent {
     public final ActorRef topicActor;

@@ -32,12 +32,16 @@ public class RouteActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return ReceiveBuilder.create().match(DashStatus.class, status -> {
-
+            this.status = status;
+            genDepth(this.status);
         }).build();
     }
+
     private List<Level> mergeLevel(int step, List<? extends Make> orders){
         return (List<Level>) merge_depth.invoke(step, orders);
     }
+
+    private DashStatus status;
 
     private void genDepth(DashStatus status){
         IntStream.of(0, 1, 2, 3, 4, 5).forEach( step -> {

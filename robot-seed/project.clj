@@ -1,33 +1,33 @@
-(defproject counter "0.3"
-  :description "FIXME: write description"
+(defproject robot-seed "0.1"
+  :description "Market quotations service"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
-            :url  "http://www.eclipse.org/legal/epl-v10.html"}
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
   :plugins [[lein-junit "1.1.8"]]
   :source-paths ["src/main/clojure"]
   :java-source-paths ["src/main/java"]
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [com.typesafe.akka/akka-actor_2.12 "2.5.19"]
                  [com.typesafe.akka/akka-remote_2.12 "2.5.19"]
-                 [liu.mars/jaskell "0.2.1"]
-                 [liu.mars/akka-clojure "0.1.0"]
-                 [liu.mars/market-messages "0.2"]
-                 [org.postgresql/postgresql "42.2.5"]
-                 [clj-postgresql "0.7.0"]
+                 [com.typesafe.akka/akka-cluster_2.12 "2.5.19"]
+                 [com.typesafe.akka/akka-cluster-tools_2.12 "2.5.19"]
+                 [liu.mars/jaskell "0.2.2"]
+                 [liu.mars/akka-clojure "0.1.2"]
+                 [liu.mars/market-messages "0.2.1"]
                  [org.clojure/java.jdbc "0.7.8"]
                  [com.fasterxml.jackson.core/jackson-core "2.9.6"]
                  [com.fasterxml.jackson.core/jackson-databind "2.9.6"]
-                 [com.github.romix.akka/akka-kryo-serialization_2.12 "0.5.2"]]
+                 [com.github.romix.akka/akka-kryo-serialization_2.12 "0.5.2"]
+                 [org.clojure/math.numeric-tower "0.0.4"]]
   :test-paths ["src/test/clojure" "src/test/java"]
   :resource-paths ["resources/main"]
   :junit ["src/test/java"]
   :aot :all
+  :main           liu.mars.market.RobotApp
   :uberjar-merge-with {#"\.properties$" [slurp str spit] "reference.conf" [slurp str spit]}
-  :profiles {:server  {:main           liu.mars.market.CounterApp
-                       :jvm-opts       ["-Dconfig.resource=server.conf"]
+  :profiles {:server  {:jvm-opts       ["-Dconfig.resource=server.conf"]
                        :resource-paths ["resources/server"]}
-             :local   {:main           liu.mars.market.CounterApp
-                       :jvm-opts       ["-Dconfig.resource=server.conf"]
+             :local   {:jvm-opts       ["-Dconfig.resource=server.conf"]
                        :resource-paths ["resources/local"]}
              :test    {:dependencies      [[junit/junit "4.12"]
                                            [com.typesafe.akka/akka-testkit_2.12 "2.5.19"]]

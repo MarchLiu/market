@@ -1,7 +1,9 @@
 package liu.mars.market;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
+import akka.actor.Props;
 import akka.event.japi.ManagedActorEventBus;
 
 import java.util.HashMap;
@@ -19,7 +21,7 @@ public class QuotationsBus extends ManagedActorEventBus<QuotationsEvent> {
                 "market.btcusdt.dpeth3",
                 "market.btcusdt.dpeth4",
                 "market.btcusdt.dpeth5").forEach(topic -> {
-            topics.put(topic, system.actorOf(DepthActor.props(topic)));
+            topics.put(topic, system.actorOf(TopicActor.props(topic)));
         });
     }
 

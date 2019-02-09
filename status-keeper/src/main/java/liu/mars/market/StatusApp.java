@@ -4,12 +4,14 @@ import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
+import akka.stream.javadsl.GraphDSL;
+import akka.stream.javadsl.Merge;
+import akka.stream.javadsl.Sink;
 import clojure.lang.IFn;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaskell.util.CR;
 import liu.mars.market.directive.LoadStatus;
 import liu.mars.market.directive.StatusDump;
-import liu.mars.market.directive.StatusQuery;
 import liu.mars.market.status.DashStatus;
 
 import java.time.Duration;

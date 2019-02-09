@@ -1,0 +1,21 @@
+digraph G {
+	node0 [
+	       label = "<f0> Eventbus|<f1>btcusdt.depth.step0|<f2>btcusdt.depth.step1|<f3>ethbtc.depth.step1|..."
+	       shape = "record"
+	       ];
+
+	node1 [
+	       label = "<f0> Webscoket|<f1>|<f2>|..."
+	       shape = "record"
+	       ]
+	node2 [
+	       label = "Data Route"
+	       ]
+	
+	撮合 -> node2 -> node0:f1
+	node2 -> node0:f2
+	node2 -> node0:f3
+	
+	client0 -> node1:f1 -> node0:f1
+	client1 -> node1:f2 -> node0:f2
+}

@@ -1,0 +1,15 @@
+digraph G {
+	"Data Quotations"
+	撮合
+	node0 [
+	      label = "Market Cluster|<f0>Seeds|<f1>Maker 0|<f2>Maker 1|...|<f3>Taker 0|<f4>Taker 1| ... |Quatations Services|..."
+	      shape = "record"
+	      ];
+	
+	撮合 -> "Data Quotations" -> node0
+	node0:f1 -> 下单
+	node0:f2 -> 下单
+	node0:f3 -> 下单
+	node0:f4 -> 下单
+	撮合 -> 下单
+}
