@@ -65,13 +65,10 @@ public class ListenerTest {
     public static void setup() throws InterruptedException {
         system = ActorSystem.create("market");
         cluster = Cluster.get(system);
-
-
     }
 
     @AfterClass
     public static void teardown() throws InterruptedException {
-
         cluster.leave(cluster.selfAddress());
         TestKit.shutdownActorSystem(system);
         system = null;
@@ -212,4 +209,44 @@ public class ListenerTest {
         }};
     }
 
+    @Test
+    public void testRouter() throws InterruptedException {
+        new TestKit(system) {{
+            var self = getRef();
+            var receptionlist = ClusterClientReceptionist.get(system);
+            Integer port = 2558;
+            var client = system.actorOf(
+                    ClusterClient.props(ClusterClientSettings.create(system)
+                            .withInitialContacts(initialContacts(port))));
+            try {
+                receptionlist.registerSubscriber(channel, self);
+                Thread.sleep(1000);
+                client.tell(new ClusterClient.Publish(channel, emptyDepth()), self);
+                this.awaitCond(this::msgAvailable);
+                expectMsgPF("expect empty depth from client publish", msg -> {
+                    Assert.assertTrue(msg instanceof Depth);
+                    var depth = (Depth) msg;
+                    Assert.assertEquals(0, depth.getVersion());
+                    Assert.assertEquals(0, depth.getAsk().size());
+                    Assert.assertEquals(0, depth.getBid().size());
+                    Assert.assertEquals(channel, depth.getChannel());
+                    return msg;
+                });
+
+                client.tell(new ClusterClient.Send("/user/seed", emptyDepth()), self);
+                this.awaitCond(this::msgAvailable);
+                expectMsgPF("expect empty depth from client publish", msg -> {
+                    Assert.assertTrue(msg instanceof Depth);
+                    var depth = (Depth) msg;
+                    Assert.assertEquals(0, depth.getVersion());
+                    Assert.assertEquals(0, depth.getAsk().size());
+                    Assert.assertEquals(0, depth.getBid().size());
+                    Assert.assertEquals(channel, depth.getChannel());
+                    return msg;
+                });
+            }finally {
+                receptionlist.unregisterSubscriber(channel, self);
+            }
+        }};
+    }
 }

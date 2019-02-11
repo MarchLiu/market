@@ -6,7 +6,7 @@ digraph G {
 	      shape = "record"
 	      ];
 	
-	撮合 -> "Data Quotations" -> node0
+	撮合 -> "Data Quotations" -> node0:f0
 	node0:f1 -> 下单
 	node0:f2 -> 下单
 	node0:f3 -> 下单
